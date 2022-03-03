@@ -1,6 +1,6 @@
 {
   "name": "serverless-framework",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "scripts": {
     "local": "serverless offline start --noAuth",
