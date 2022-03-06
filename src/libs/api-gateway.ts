@@ -1,5 +1,5 @@
 export const formatJSONResponse = (
-  response: Record<string, unknown>,
+  response: Record<string, any>,
   statusCode = 200
 ) => {
   return {

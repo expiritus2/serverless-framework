@@ -46,497 +46,6 @@ var __toCommonJS = /* @__PURE__ */ ((cache) => {
   };
 })(typeof WeakMap !== "undefined" ? /* @__PURE__ */ new WeakMap() : 0);
 
-// node_modules/uuid/dist/rng.js
-var require_rng = __commonJS({
-  "node_modules/uuid/dist/rng.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = rng;
-    var _crypto = _interopRequireDefault(require("crypto"));
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    var rnds8Pool = new Uint8Array(256);
-    var poolPtr = rnds8Pool.length;
-    function rng() {
-      if (poolPtr > rnds8Pool.length - 16) {
-        _crypto.default.randomFillSync(rnds8Pool);
-        poolPtr = 0;
-      }
-      return rnds8Pool.slice(poolPtr, poolPtr += 16);
-    }
-  }
-});
-
-// node_modules/uuid/dist/regex.js
-var require_regex = __commonJS({
-  "node_modules/uuid/dist/regex.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = void 0;
-    var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
-    exports.default = _default;
-  }
-});
-
-// node_modules/uuid/dist/validate.js
-var require_validate = __commonJS({
-  "node_modules/uuid/dist/validate.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = void 0;
-    var _regex = _interopRequireDefault(require_regex());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function validate2(uuid2) {
-      return typeof uuid2 === "string" && _regex.default.test(uuid2);
-    }
-    var _default = validate2;
-    exports.default = _default;
-  }
-});
-
-// node_modules/uuid/dist/stringify.js
-var require_stringify = __commonJS({
-  "node_modules/uuid/dist/stringify.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = void 0;
-    var _validate = _interopRequireDefault(require_validate());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    var byteToHex = [];
-    for (let i = 0; i < 256; ++i) {
-      byteToHex.push((i + 256).toString(16).substr(1));
-    }
-    function stringify2(arr, offset = 0) {
-      const uuid2 = (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + "-" + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + "-" + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + "-" + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + "-" + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase();
-      if (!(0, _validate.default)(uuid2)) {
-        throw TypeError("Stringified UUID is invalid");
-      }
-      return uuid2;
-    }
-    var _default = stringify2;
-    exports.default = _default;
-  }
-});
-
-// node_modules/uuid/dist/v1.js
-var require_v1 = __commonJS({
-  "node_modules/uuid/dist/v1.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = void 0;
-    var _rng = _interopRequireDefault(require_rng());
-    var _stringify = _interopRequireDefault(require_stringify());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    var _nodeId;
-    var _clockseq;
-    var _lastMSecs = 0;
-    var _lastNSecs = 0;
-    function v12(options, buf, offset) {
-      let i = buf && offset || 0;
-      const b = buf || new Array(16);
-      options = options || {};
-      let node = options.node || _nodeId;
-      let clockseq = options.clockseq !== void 0 ? options.clockseq : _clockseq;
-      if (node == null || clockseq == null) {
-        const seedBytes = options.random || (options.rng || _rng.default)();
-        if (node == null) {
-          node = _nodeId = [seedBytes[0] | 1, seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
-        }
-        if (clockseq == null) {
-          clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 16383;
-        }
-      }
-      let msecs = options.msecs !== void 0 ? options.msecs : Date.now();
-      let nsecs = options.nsecs !== void 0 ? options.nsecs : _lastNSecs + 1;
-      const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 1e4;
-      if (dt < 0 && options.clockseq === void 0) {
-        clockseq = clockseq + 1 & 16383;
-      }
-      if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === void 0) {
-        nsecs = 0;
-      }
-      if (nsecs >= 1e4) {
-        throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
-      }
-      _lastMSecs = msecs;
-      _lastNSecs = nsecs;
-      _clockseq = clockseq;
-      msecs += 122192928e5;
-      const tl = ((msecs & 268435455) * 1e4 + nsecs) % 4294967296;
-      b[i++] = tl >>> 24 & 255;
-      b[i++] = tl >>> 16 & 255;
-      b[i++] = tl >>> 8 & 255;
-      b[i++] = tl & 255;
-      const tmh = msecs / 4294967296 * 1e4 & 268435455;
-      b[i++] = tmh >>> 8 & 255;
-      b[i++] = tmh & 255;
-      b[i++] = tmh >>> 24 & 15 | 16;
-      b[i++] = tmh >>> 16 & 255;
-      b[i++] = clockseq >>> 8 | 128;
-      b[i++] = clockseq & 255;
-      for (let n = 0; n < 6; ++n) {
-        b[i + n] = node[n];
-      }
-      return buf || (0, _stringify.default)(b);
-    }
-    var _default = v12;
-    exports.default = _default;
-  }
-});
-
-// node_modules/uuid/dist/parse.js
-var require_parse = __commonJS({
-  "node_modules/uuid/dist/parse.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = void 0;
-    var _validate = _interopRequireDefault(require_validate());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function parse2(uuid2) {
-      if (!(0, _validate.default)(uuid2)) {
-        throw TypeError("Invalid UUID");
-      }
-      let v;
-      const arr = new Uint8Array(16);
-      arr[0] = (v = parseInt(uuid2.slice(0, 8), 16)) >>> 24;
-      arr[1] = v >>> 16 & 255;
-      arr[2] = v >>> 8 & 255;
-      arr[3] = v & 255;
-      arr[4] = (v = parseInt(uuid2.slice(9, 13), 16)) >>> 8;
-      arr[5] = v & 255;
-      arr[6] = (v = parseInt(uuid2.slice(14, 18), 16)) >>> 8;
-      arr[7] = v & 255;
-      arr[8] = (v = parseInt(uuid2.slice(19, 23), 16)) >>> 8;
-      arr[9] = v & 255;
-      arr[10] = (v = parseInt(uuid2.slice(24, 36), 16)) / 1099511627776 & 255;
-      arr[11] = v / 4294967296 & 255;
-      arr[12] = v >>> 24 & 255;
-      arr[13] = v >>> 16 & 255;
-      arr[14] = v >>> 8 & 255;
-      arr[15] = v & 255;
-      return arr;
-    }
-    var _default = parse2;
-    exports.default = _default;
-  }
-});
-
-// node_modules/uuid/dist/v35.js
-var require_v35 = __commonJS({
-  "node_modules/uuid/dist/v35.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = _default;
-    exports.URL = exports.DNS = void 0;
-    var _stringify = _interopRequireDefault(require_stringify());
-    var _parse = _interopRequireDefault(require_parse());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function stringToBytes(str) {
-      str = unescape(encodeURIComponent(str));
-      const bytes = [];
-      for (let i = 0; i < str.length; ++i) {
-        bytes.push(str.charCodeAt(i));
-      }
-      return bytes;
-    }
-    var DNS = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
-    exports.DNS = DNS;
-    var URL = "6ba7b811-9dad-11d1-80b4-00c04fd430c8";
-    exports.URL = URL;
-    function _default(name, version2, hashfunc) {
-      function generateUUID(value, namespace, buf, offset) {
-        if (typeof value === "string") {
-          value = stringToBytes(value);
-        }
-        if (typeof namespace === "string") {
-          namespace = (0, _parse.default)(namespace);
-        }
-        if (namespace.length !== 16) {
-          throw TypeError("Namespace must be array-like (16 iterable integer values, 0-255)");
-        }
-        let bytes = new Uint8Array(16 + value.length);
-        bytes.set(namespace);
-        bytes.set(value, namespace.length);
-        bytes = hashfunc(bytes);
-        bytes[6] = bytes[6] & 15 | version2;
-        bytes[8] = bytes[8] & 63 | 128;
-        if (buf) {
-          offset = offset || 0;
-          for (let i = 0; i < 16; ++i) {
-            buf[offset + i] = bytes[i];
-          }
-          return buf;
-        }
-        return (0, _stringify.default)(bytes);
-      }
-      try {
-        generateUUID.name = name;
-      } catch (err) {
-      }
-      generateUUID.DNS = DNS;
-      generateUUID.URL = URL;
-      return generateUUID;
-    }
-  }
-});
-
-// node_modules/uuid/dist/md5.js
-var require_md5 = __commonJS({
-  "node_modules/uuid/dist/md5.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = void 0;
-    var _crypto = _interopRequireDefault(require("crypto"));
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function md5(bytes) {
-      if (Array.isArray(bytes)) {
-        bytes = Buffer.from(bytes);
-      } else if (typeof bytes === "string") {
-        bytes = Buffer.from(bytes, "utf8");
-      }
-      return _crypto.default.createHash("md5").update(bytes).digest();
-    }
-    var _default = md5;
-    exports.default = _default;
-  }
-});
-
-// node_modules/uuid/dist/v3.js
-var require_v3 = __commonJS({
-  "node_modules/uuid/dist/v3.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = void 0;
-    var _v = _interopRequireDefault(require_v35());
-    var _md = _interopRequireDefault(require_md5());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    var v32 = (0, _v.default)("v3", 48, _md.default);
-    var _default = v32;
-    exports.default = _default;
-  }
-});
-
-// node_modules/uuid/dist/v4.js
-var require_v4 = __commonJS({
-  "node_modules/uuid/dist/v4.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = void 0;
-    var _rng = _interopRequireDefault(require_rng());
-    var _stringify = _interopRequireDefault(require_stringify());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function v42(options, buf, offset) {
-      options = options || {};
-      const rnds = options.random || (options.rng || _rng.default)();
-      rnds[6] = rnds[6] & 15 | 64;
-      rnds[8] = rnds[8] & 63 | 128;
-      if (buf) {
-        offset = offset || 0;
-        for (let i = 0; i < 16; ++i) {
-          buf[offset + i] = rnds[i];
-        }
-        return buf;
-      }
-      return (0, _stringify.default)(rnds);
-    }
-    var _default = v42;
-    exports.default = _default;
-  }
-});
-
-// node_modules/uuid/dist/sha1.js
-var require_sha1 = __commonJS({
-  "node_modules/uuid/dist/sha1.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = void 0;
-    var _crypto = _interopRequireDefault(require("crypto"));
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function sha1(bytes) {
-      if (Array.isArray(bytes)) {
-        bytes = Buffer.from(bytes);
-      } else if (typeof bytes === "string") {
-        bytes = Buffer.from(bytes, "utf8");
-      }
-      return _crypto.default.createHash("sha1").update(bytes).digest();
-    }
-    var _default = sha1;
-    exports.default = _default;
-  }
-});
-
-// node_modules/uuid/dist/v5.js
-var require_v5 = __commonJS({
-  "node_modules/uuid/dist/v5.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = void 0;
-    var _v = _interopRequireDefault(require_v35());
-    var _sha = _interopRequireDefault(require_sha1());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    var v52 = (0, _v.default)("v5", 80, _sha.default);
-    var _default = v52;
-    exports.default = _default;
-  }
-});
-
-// node_modules/uuid/dist/nil.js
-var require_nil = __commonJS({
-  "node_modules/uuid/dist/nil.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = void 0;
-    var _default = "00000000-0000-0000-0000-000000000000";
-    exports.default = _default;
-  }
-});
-
-// node_modules/uuid/dist/version.js
-var require_version = __commonJS({
-  "node_modules/uuid/dist/version.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = void 0;
-    var _validate = _interopRequireDefault(require_validate());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function version2(uuid2) {
-      if (!(0, _validate.default)(uuid2)) {
-        throw TypeError("Invalid UUID");
-      }
-      return parseInt(uuid2.substr(14, 1), 16);
-    }
-    var _default = version2;
-    exports.default = _default;
-  }
-});
-
-// node_modules/uuid/dist/index.js
-var require_dist = __commonJS({
-  "node_modules/uuid/dist/index.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    Object.defineProperty(exports, "v1", {
-      enumerable: true,
-      get: function() {
-        return _v.default;
-      }
-    });
-    Object.defineProperty(exports, "v3", {
-      enumerable: true,
-      get: function() {
-        return _v2.default;
-      }
-    });
-    Object.defineProperty(exports, "v4", {
-      enumerable: true,
-      get: function() {
-        return _v3.default;
-      }
-    });
-    Object.defineProperty(exports, "v5", {
-      enumerable: true,
-      get: function() {
-        return _v4.default;
-      }
-    });
-    Object.defineProperty(exports, "NIL", {
-      enumerable: true,
-      get: function() {
-        return _nil.default;
-      }
-    });
-    Object.defineProperty(exports, "version", {
-      enumerable: true,
-      get: function() {
-        return _version.default;
-      }
-    });
-    Object.defineProperty(exports, "validate", {
-      enumerable: true,
-      get: function() {
-        return _validate.default;
-      }
-    });
-    Object.defineProperty(exports, "stringify", {
-      enumerable: true,
-      get: function() {
-        return _stringify.default;
-      }
-    });
-    Object.defineProperty(exports, "parse", {
-      enumerable: true,
-      get: function() {
-        return _parse.default;
-      }
-    });
-    var _v = _interopRequireDefault(require_v1());
-    var _v2 = _interopRequireDefault(require_v3());
-    var _v3 = _interopRequireDefault(require_v4());
-    var _v4 = _interopRequireDefault(require_v5());
-    var _nil = _interopRequireDefault(require_nil());
-    var _version = _interopRequireDefault(require_version());
-    var _validate = _interopRequireDefault(require_validate());
-    var _stringify = _interopRequireDefault(require_stringify());
-    var _parse = _interopRequireDefault(require_parse());
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-  }
-});
-
 // node_modules/@middy/core/index.js
 var require_core = __commonJS({
   "node_modules/@middy/core/index.js"(exports, module2) {
@@ -1057,9 +566,695 @@ var require_http_error_handler = __commonJS({
   }
 });
 
-// src/functions/createAuction/index.ts
-var createAuction_exports = {};
-__export(createAuction_exports, {
+// node_modules/depd/index.js
+var require_depd = __commonJS({
+  "node_modules/depd/index.js"(exports, module2) {
+    var relative = require("path").relative;
+    module2.exports = depd;
+    var basePath = process.cwd();
+    function containsNamespace(str, namespace) {
+      var vals = str.split(/[ ,]+/);
+      var ns = String(namespace).toLowerCase();
+      for (var i = 0; i < vals.length; i++) {
+        var val = vals[i];
+        if (val && (val === "*" || val.toLowerCase() === ns)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    function convertDataDescriptorToAccessor(obj, prop, message) {
+      var descriptor = Object.getOwnPropertyDescriptor(obj, prop);
+      var value = descriptor.value;
+      descriptor.get = function getter() {
+        return value;
+      };
+      if (descriptor.writable) {
+        descriptor.set = function setter(val) {
+          return value = val;
+        };
+      }
+      delete descriptor.value;
+      delete descriptor.writable;
+      Object.defineProperty(obj, prop, descriptor);
+      return descriptor;
+    }
+    function createArgumentsString(arity) {
+      var str = "";
+      for (var i = 0; i < arity; i++) {
+        str += ", arg" + i;
+      }
+      return str.substr(2);
+    }
+    function createStackString(stack) {
+      var str = this.name + ": " + this.namespace;
+      if (this.message) {
+        str += " deprecated " + this.message;
+      }
+      for (var i = 0; i < stack.length; i++) {
+        str += "\n    at " + stack[i].toString();
+      }
+      return str;
+    }
+    function depd(namespace) {
+      if (!namespace) {
+        throw new TypeError("argument namespace is required");
+      }
+      var stack = getStack();
+      var site = callSiteLocation(stack[1]);
+      var file = site[0];
+      function deprecate(message) {
+        log.call(deprecate, message);
+      }
+      deprecate._file = file;
+      deprecate._ignored = isignored(namespace);
+      deprecate._namespace = namespace;
+      deprecate._traced = istraced(namespace);
+      deprecate._warned = /* @__PURE__ */ Object.create(null);
+      deprecate.function = wrapfunction;
+      deprecate.property = wrapproperty;
+      return deprecate;
+    }
+    function eehaslisteners(emitter, type) {
+      var count = typeof emitter.listenerCount !== "function" ? emitter.listeners(type).length : emitter.listenerCount(type);
+      return count > 0;
+    }
+    function isignored(namespace) {
+      if (process.noDeprecation) {
+        return true;
+      }
+      var str = process.env.NO_DEPRECATION || "";
+      return containsNamespace(str, namespace);
+    }
+    function istraced(namespace) {
+      if (process.traceDeprecation) {
+        return true;
+      }
+      var str = process.env.TRACE_DEPRECATION || "";
+      return containsNamespace(str, namespace);
+    }
+    function log(message, site) {
+      var haslisteners = eehaslisteners(process, "deprecation");
+      if (!haslisteners && this._ignored) {
+        return;
+      }
+      var caller;
+      var callFile;
+      var callSite;
+      var depSite;
+      var i = 0;
+      var seen = false;
+      var stack = getStack();
+      var file = this._file;
+      if (site) {
+        depSite = site;
+        callSite = callSiteLocation(stack[1]);
+        callSite.name = depSite.name;
+        file = callSite[0];
+      } else {
+        i = 2;
+        depSite = callSiteLocation(stack[i]);
+        callSite = depSite;
+      }
+      for (; i < stack.length; i++) {
+        caller = callSiteLocation(stack[i]);
+        callFile = caller[0];
+        if (callFile === file) {
+          seen = true;
+        } else if (callFile === this._file) {
+          file = this._file;
+        } else if (seen) {
+          break;
+        }
+      }
+      var key = caller ? depSite.join(":") + "__" + caller.join(":") : void 0;
+      if (key !== void 0 && key in this._warned) {
+        return;
+      }
+      this._warned[key] = true;
+      var msg = message;
+      if (!msg) {
+        msg = callSite === depSite || !callSite.name ? defaultMessage(depSite) : defaultMessage(callSite);
+      }
+      if (haslisteners) {
+        var err = DeprecationError(this._namespace, msg, stack.slice(i));
+        process.emit("deprecation", err);
+        return;
+      }
+      var format = process.stderr.isTTY ? formatColor : formatPlain;
+      var output = format.call(this, msg, caller, stack.slice(i));
+      process.stderr.write(output + "\n", "utf8");
+    }
+    function callSiteLocation(callSite) {
+      var file = callSite.getFileName() || "<anonymous>";
+      var line = callSite.getLineNumber();
+      var colm = callSite.getColumnNumber();
+      if (callSite.isEval()) {
+        file = callSite.getEvalOrigin() + ", " + file;
+      }
+      var site = [file, line, colm];
+      site.callSite = callSite;
+      site.name = callSite.getFunctionName();
+      return site;
+    }
+    function defaultMessage(site) {
+      var callSite = site.callSite;
+      var funcName = site.name;
+      if (!funcName) {
+        funcName = "<anonymous@" + formatLocation(site) + ">";
+      }
+      var context = callSite.getThis();
+      var typeName = context && callSite.getTypeName();
+      if (typeName === "Object") {
+        typeName = void 0;
+      }
+      if (typeName === "Function") {
+        typeName = context.name || typeName;
+      }
+      return typeName && callSite.getMethodName() ? typeName + "." + funcName : funcName;
+    }
+    function formatPlain(msg, caller, stack) {
+      var timestamp = new Date().toUTCString();
+      var formatted = timestamp + " " + this._namespace + " deprecated " + msg;
+      if (this._traced) {
+        for (var i = 0; i < stack.length; i++) {
+          formatted += "\n    at " + stack[i].toString();
+        }
+        return formatted;
+      }
+      if (caller) {
+        formatted += " at " + formatLocation(caller);
+      }
+      return formatted;
+    }
+    function formatColor(msg, caller, stack) {
+      var formatted = "\x1B[36;1m" + this._namespace + "\x1B[22;39m \x1B[33;1mdeprecated\x1B[22;39m \x1B[0m" + msg + "\x1B[39m";
+      if (this._traced) {
+        for (var i = 0; i < stack.length; i++) {
+          formatted += "\n    \x1B[36mat " + stack[i].toString() + "\x1B[39m";
+        }
+        return formatted;
+      }
+      if (caller) {
+        formatted += " \x1B[36m" + formatLocation(caller) + "\x1B[39m";
+      }
+      return formatted;
+    }
+    function formatLocation(callSite) {
+      return relative(basePath, callSite[0]) + ":" + callSite[1] + ":" + callSite[2];
+    }
+    function getStack() {
+      var limit = Error.stackTraceLimit;
+      var obj = {};
+      var prep = Error.prepareStackTrace;
+      Error.prepareStackTrace = prepareObjectStackTrace;
+      Error.stackTraceLimit = Math.max(10, limit);
+      Error.captureStackTrace(obj);
+      var stack = obj.stack.slice(1);
+      Error.prepareStackTrace = prep;
+      Error.stackTraceLimit = limit;
+      return stack;
+    }
+    function prepareObjectStackTrace(obj, stack) {
+      return stack;
+    }
+    function wrapfunction(fn, message) {
+      if (typeof fn !== "function") {
+        throw new TypeError("argument fn must be a function");
+      }
+      var args = createArgumentsString(fn.length);
+      var stack = getStack();
+      var site = callSiteLocation(stack[1]);
+      site.name = fn.name;
+      var deprecatedfn = new Function("fn", "log", "deprecate", "message", "site", '"use strict"\nreturn function (' + args + ") {log.call(deprecate, message, site)\nreturn fn.apply(this, arguments)\n}")(fn, log, this, message, site);
+      return deprecatedfn;
+    }
+    function wrapproperty(obj, prop, message) {
+      if (!obj || typeof obj !== "object" && typeof obj !== "function") {
+        throw new TypeError("argument obj must be object");
+      }
+      var descriptor = Object.getOwnPropertyDescriptor(obj, prop);
+      if (!descriptor) {
+        throw new TypeError("must call property on owner object");
+      }
+      if (!descriptor.configurable) {
+        throw new TypeError("property must be configurable");
+      }
+      var deprecate = this;
+      var stack = getStack();
+      var site = callSiteLocation(stack[1]);
+      site.name = prop;
+      if ("value" in descriptor) {
+        descriptor = convertDataDescriptorToAccessor(obj, prop, message);
+      }
+      var get = descriptor.get;
+      var set = descriptor.set;
+      if (typeof get === "function") {
+        descriptor.get = function getter() {
+          log.call(deprecate, message, site);
+          return get.apply(this, arguments);
+        };
+      }
+      if (typeof set === "function") {
+        descriptor.set = function setter() {
+          log.call(deprecate, message, site);
+          return set.apply(this, arguments);
+        };
+      }
+      Object.defineProperty(obj, prop, descriptor);
+    }
+    function DeprecationError(namespace, message, stack) {
+      var error = new Error();
+      var stackString;
+      Object.defineProperty(error, "constructor", {
+        value: DeprecationError
+      });
+      Object.defineProperty(error, "message", {
+        configurable: true,
+        enumerable: false,
+        value: message,
+        writable: true
+      });
+      Object.defineProperty(error, "name", {
+        enumerable: false,
+        configurable: true,
+        value: "DeprecationError",
+        writable: true
+      });
+      Object.defineProperty(error, "namespace", {
+        configurable: true,
+        enumerable: false,
+        value: namespace,
+        writable: true
+      });
+      Object.defineProperty(error, "stack", {
+        configurable: true,
+        enumerable: false,
+        get: function() {
+          if (stackString !== void 0) {
+            return stackString;
+          }
+          return stackString = createStackString.call(this, stack);
+        },
+        set: function setter(val) {
+          stackString = val;
+        }
+      });
+      return error;
+    }
+  }
+});
+
+// node_modules/setprototypeof/index.js
+var require_setprototypeof = __commonJS({
+  "node_modules/setprototypeof/index.js"(exports, module2) {
+    "use strict";
+    module2.exports = Object.setPrototypeOf || ({ __proto__: [] } instanceof Array ? setProtoOf : mixinProperties);
+    function setProtoOf(obj, proto) {
+      obj.__proto__ = proto;
+      return obj;
+    }
+    function mixinProperties(obj, proto) {
+      for (var prop in proto) {
+        if (!Object.prototype.hasOwnProperty.call(obj, prop)) {
+          obj[prop] = proto[prop];
+        }
+      }
+      return obj;
+    }
+  }
+});
+
+// node_modules/statuses/codes.json
+var require_codes2 = __commonJS({
+  "node_modules/statuses/codes.json"(exports, module2) {
+    module2.exports = {
+      "100": "Continue",
+      "101": "Switching Protocols",
+      "102": "Processing",
+      "103": "Early Hints",
+      "200": "OK",
+      "201": "Created",
+      "202": "Accepted",
+      "203": "Non-Authoritative Information",
+      "204": "No Content",
+      "205": "Reset Content",
+      "206": "Partial Content",
+      "207": "Multi-Status",
+      "208": "Already Reported",
+      "226": "IM Used",
+      "300": "Multiple Choices",
+      "301": "Moved Permanently",
+      "302": "Found",
+      "303": "See Other",
+      "304": "Not Modified",
+      "305": "Use Proxy",
+      "307": "Temporary Redirect",
+      "308": "Permanent Redirect",
+      "400": "Bad Request",
+      "401": "Unauthorized",
+      "402": "Payment Required",
+      "403": "Forbidden",
+      "404": "Not Found",
+      "405": "Method Not Allowed",
+      "406": "Not Acceptable",
+      "407": "Proxy Authentication Required",
+      "408": "Request Timeout",
+      "409": "Conflict",
+      "410": "Gone",
+      "411": "Length Required",
+      "412": "Precondition Failed",
+      "413": "Payload Too Large",
+      "414": "URI Too Long",
+      "415": "Unsupported Media Type",
+      "416": "Range Not Satisfiable",
+      "417": "Expectation Failed",
+      "418": "I'm a Teapot",
+      "421": "Misdirected Request",
+      "422": "Unprocessable Entity",
+      "423": "Locked",
+      "424": "Failed Dependency",
+      "425": "Too Early",
+      "426": "Upgrade Required",
+      "428": "Precondition Required",
+      "429": "Too Many Requests",
+      "431": "Request Header Fields Too Large",
+      "451": "Unavailable For Legal Reasons",
+      "500": "Internal Server Error",
+      "501": "Not Implemented",
+      "502": "Bad Gateway",
+      "503": "Service Unavailable",
+      "504": "Gateway Timeout",
+      "505": "HTTP Version Not Supported",
+      "506": "Variant Also Negotiates",
+      "507": "Insufficient Storage",
+      "508": "Loop Detected",
+      "509": "Bandwidth Limit Exceeded",
+      "510": "Not Extended",
+      "511": "Network Authentication Required"
+    };
+  }
+});
+
+// node_modules/statuses/index.js
+var require_statuses = __commonJS({
+  "node_modules/statuses/index.js"(exports, module2) {
+    "use strict";
+    var codes = require_codes2();
+    module2.exports = status;
+    status.message = codes;
+    status.code = createMessageToStatusCodeMap(codes);
+    status.codes = createStatusCodeList(codes);
+    status.redirect = {
+      300: true,
+      301: true,
+      302: true,
+      303: true,
+      305: true,
+      307: true,
+      308: true
+    };
+    status.empty = {
+      204: true,
+      205: true,
+      304: true
+    };
+    status.retry = {
+      502: true,
+      503: true,
+      504: true
+    };
+    function createMessageToStatusCodeMap(codes2) {
+      var map = {};
+      Object.keys(codes2).forEach(function forEachCode(code) {
+        var message = codes2[code];
+        var status2 = Number(code);
+        map[message.toLowerCase()] = status2;
+      });
+      return map;
+    }
+    function createStatusCodeList(codes2) {
+      return Object.keys(codes2).map(function mapCode(code) {
+        return Number(code);
+      });
+    }
+    function getStatusCode(message) {
+      var msg = message.toLowerCase();
+      if (!Object.prototype.hasOwnProperty.call(status.code, msg)) {
+        throw new Error('invalid status message: "' + message + '"');
+      }
+      return status.code[msg];
+    }
+    function getStatusMessage(code) {
+      if (!Object.prototype.hasOwnProperty.call(status.message, code)) {
+        throw new Error("invalid status code: " + code);
+      }
+      return status.message[code];
+    }
+    function status(code) {
+      if (typeof code === "number") {
+        return getStatusMessage(code);
+      }
+      if (typeof code !== "string") {
+        throw new TypeError("code must be a number or string");
+      }
+      var n = parseInt(code, 10);
+      if (!isNaN(n)) {
+        return getStatusMessage(n);
+      }
+      return getStatusCode(code);
+    }
+  }
+});
+
+// node_modules/inherits/inherits_browser.js
+var require_inherits_browser = __commonJS({
+  "node_modules/inherits/inherits_browser.js"(exports, module2) {
+    if (typeof Object.create === "function") {
+      module2.exports = function inherits(ctor, superCtor) {
+        if (superCtor) {
+          ctor.super_ = superCtor;
+          ctor.prototype = Object.create(superCtor.prototype, {
+            constructor: {
+              value: ctor,
+              enumerable: false,
+              writable: true,
+              configurable: true
+            }
+          });
+        }
+      };
+    } else {
+      module2.exports = function inherits(ctor, superCtor) {
+        if (superCtor) {
+          ctor.super_ = superCtor;
+          var TempCtor = function() {
+          };
+          TempCtor.prototype = superCtor.prototype;
+          ctor.prototype = new TempCtor();
+          ctor.prototype.constructor = ctor;
+        }
+      };
+    }
+  }
+});
+
+// node_modules/inherits/inherits.js
+var require_inherits = __commonJS({
+  "node_modules/inherits/inherits.js"(exports, module2) {
+    try {
+      util = require("util");
+      if (typeof util.inherits !== "function")
+        throw "";
+      module2.exports = util.inherits;
+    } catch (e) {
+      module2.exports = require_inherits_browser();
+    }
+    var util;
+  }
+});
+
+// node_modules/toidentifier/index.js
+var require_toidentifier = __commonJS({
+  "node_modules/toidentifier/index.js"(exports, module2) {
+    "use strict";
+    module2.exports = toIdentifier;
+    function toIdentifier(str) {
+      return str.split(" ").map(function(token) {
+        return token.slice(0, 1).toUpperCase() + token.slice(1);
+      }).join("").replace(/[^ _0-9a-z]/gi, "");
+    }
+  }
+});
+
+// node_modules/http-errors/index.js
+var require_http_errors = __commonJS({
+  "node_modules/http-errors/index.js"(exports, module2) {
+    "use strict";
+    var deprecate = require_depd()("http-errors");
+    var setPrototypeOf = require_setprototypeof();
+    var statuses = require_statuses();
+    var inherits = require_inherits();
+    var toIdentifier = require_toidentifier();
+    module2.exports = createError;
+    module2.exports.HttpError = createHttpErrorConstructor();
+    module2.exports.isHttpError = createIsHttpErrorFunction(module2.exports.HttpError);
+    populateConstructorExports(module2.exports, statuses.codes, module2.exports.HttpError);
+    function codeClass(status) {
+      return Number(String(status).charAt(0) + "00");
+    }
+    function createError() {
+      var err;
+      var msg;
+      var status = 500;
+      var props = {};
+      for (var i = 0; i < arguments.length; i++) {
+        var arg = arguments[i];
+        var type = typeof arg;
+        if (type === "object" && arg instanceof Error) {
+          err = arg;
+          status = err.status || err.statusCode || status;
+        } else if (type === "number" && i === 0) {
+          status = arg;
+        } else if (type === "string") {
+          msg = arg;
+        } else if (type === "object") {
+          props = arg;
+        } else {
+          throw new TypeError("argument #" + (i + 1) + " unsupported type " + type);
+        }
+      }
+      if (typeof status === "number" && (status < 400 || status >= 600)) {
+        deprecate("non-error status code; use only 4xx or 5xx status codes");
+      }
+      if (typeof status !== "number" || !statuses.message[status] && (status < 400 || status >= 600)) {
+        status = 500;
+      }
+      var HttpError = createError[status] || createError[codeClass(status)];
+      if (!err) {
+        err = HttpError ? new HttpError(msg) : new Error(msg || statuses.message[status]);
+        Error.captureStackTrace(err, createError);
+      }
+      if (!HttpError || !(err instanceof HttpError) || err.status !== status) {
+        err.expose = status < 500;
+        err.status = err.statusCode = status;
+      }
+      for (var key in props) {
+        if (key !== "status" && key !== "statusCode") {
+          err[key] = props[key];
+        }
+      }
+      return err;
+    }
+    function createHttpErrorConstructor() {
+      function HttpError() {
+        throw new TypeError("cannot construct abstract class");
+      }
+      inherits(HttpError, Error);
+      return HttpError;
+    }
+    function createClientErrorConstructor(HttpError, name, code) {
+      var className = toClassName(name);
+      function ClientError(message) {
+        var msg = message != null ? message : statuses.message[code];
+        var err = new Error(msg);
+        Error.captureStackTrace(err, ClientError);
+        setPrototypeOf(err, ClientError.prototype);
+        Object.defineProperty(err, "message", {
+          enumerable: true,
+          configurable: true,
+          value: msg,
+          writable: true
+        });
+        Object.defineProperty(err, "name", {
+          enumerable: false,
+          configurable: true,
+          value: className,
+          writable: true
+        });
+        return err;
+      }
+      inherits(ClientError, HttpError);
+      nameFunc(ClientError, className);
+      ClientError.prototype.status = code;
+      ClientError.prototype.statusCode = code;
+      ClientError.prototype.expose = true;
+      return ClientError;
+    }
+    function createIsHttpErrorFunction(HttpError) {
+      return function isHttpError(val) {
+        if (!val || typeof val !== "object") {
+          return false;
+        }
+        if (val instanceof HttpError) {
+          return true;
+        }
+        return val instanceof Error && typeof val.expose === "boolean" && typeof val.statusCode === "number" && val.status === val.statusCode;
+      };
+    }
+    function createServerErrorConstructor(HttpError, name, code) {
+      var className = toClassName(name);
+      function ServerError(message) {
+        var msg = message != null ? message : statuses.message[code];
+        var err = new Error(msg);
+        Error.captureStackTrace(err, ServerError);
+        setPrototypeOf(err, ServerError.prototype);
+        Object.defineProperty(err, "message", {
+          enumerable: true,
+          configurable: true,
+          value: msg,
+          writable: true
+        });
+        Object.defineProperty(err, "name", {
+          enumerable: false,
+          configurable: true,
+          value: className,
+          writable: true
+        });
+        return err;
+      }
+      inherits(ServerError, HttpError);
+      nameFunc(ServerError, className);
+      ServerError.prototype.status = code;
+      ServerError.prototype.statusCode = code;
+      ServerError.prototype.expose = false;
+      return ServerError;
+    }
+    function nameFunc(func, name) {
+      var desc = Object.getOwnPropertyDescriptor(func, "name");
+      if (desc && desc.configurable) {
+        desc.value = name;
+        Object.defineProperty(func, "name", desc);
+      }
+    }
+    function populateConstructorExports(exports2, codes, HttpError) {
+      codes.forEach(function forEachCode(code) {
+        var CodeError;
+        var name = toIdentifier(statuses.message[code]);
+        switch (codeClass(code)) {
+          case 400:
+            CodeError = createClientErrorConstructor(HttpError, name, code);
+            break;
+          case 500:
+            CodeError = createServerErrorConstructor(HttpError, name, code);
+            break;
+        }
+        if (CodeError) {
+          exports2[code] = CodeError;
+          exports2[name] = CodeError;
+        }
+      });
+    }
+    function toClassName(name) {
+      return name.substr(-5) !== "Error" ? name + "Error" : name;
+    }
+  }
+});
+
+// src/functions/getAuction/index.ts
+var getAuction_exports = {};
+__export(getAuction_exports, {
+  getAuctionById: () => getAuctionById,
   handler: () => handler
 });
 
@@ -1071,19 +1266,7 @@ var formatJSONResponse = (response, statusCode = 200) => {
   };
 };
 
-// node_modules/uuid/wrapper.mjs
-var import_dist = __toESM(require_dist(), 1);
-var v1 = import_dist.default.v1;
-var v3 = import_dist.default.v3;
-var v4 = import_dist.default.v4;
-var v5 = import_dist.default.v5;
-var NIL = import_dist.default.NIL;
-var version = import_dist.default.version;
-var validate = import_dist.default.validate;
-var stringify = import_dist.default.stringify;
-var parse = import_dist.default.parse;
-
-// src/functions/createAuction/index.ts
+// src/functions/getAuction/index.ts
 var import_aws_sdk = __toESM(require("aws-sdk"));
 
 // src/libs/commonMiddleware.ts
@@ -1097,29 +1280,57 @@ var commonMiddleware_default = (handler2) => (0, import_core.default)(handler2).
   (0, import_http_error_handler.default)()
 ]);
 
-// src/functions/createAuction/index.ts
+// src/functions/getAuction/index.ts
+var import_http_errors = __toESM(require_http_errors());
 var dynamoDB = new import_aws_sdk.default.DynamoDB.DocumentClient();
-var createAuction = async (event) => {
-  const { title } = event == null ? void 0 : event.body;
-  const now = new Date();
-  const auction = {
-    id: v4(),
-    title,
-    status: "OPEN" /* OPEN */,
-    createdAt: now.toISOString(),
-    highestBid: {
-      amount: 0
-    }
-  };
-  await dynamoDB.put({
-    TableName: process.env.AUCTIONS_TABLE_NAME,
-    Item: auction
-  }).promise();
-  return formatJSONResponse(auction, 201);
+var getAuctionById = async (id) => {
+  let auction;
+  try {
+    const result = await dynamoDB.get({
+      TableName: process.env.AUCTIONS_TABLE_NAME,
+      Key: { id }
+    }).promise();
+    auction = result.Item;
+  } catch (error) {
+    console.error(error);
+    throw new import_http_errors.default.InternalServerError(error);
+  }
+  if (!auction) {
+    throw new import_http_errors.default.NotFound(`Auction with ID ${id} not found!`);
+  }
+  return auction;
 };
-var handler = commonMiddleware_default(createAuction);
-module.exports = __toCommonJS(createAuction_exports);
+var getAuction = async (event) => {
+  const { id } = event.pathParameters;
+  const auction = await getAuctionById(id);
+  return formatJSONResponse(auction, 200);
+};
+var handler = commonMiddleware_default(getAuction);
+module.exports = __toCommonJS(getAuction_exports);
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  getAuctionById,
   handler
 });
+/*!
+ * depd
+ * Copyright(c) 2014-2018 Douglas Christopher Wilson
+ * MIT Licensed
+ */
+/*!
+ * http-errors
+ * Copyright(c) 2014 Jonathan Ong
+ * Copyright(c) 2016 Douglas Christopher Wilson
+ * MIT Licensed
+ */
+/*!
+ * statuses
+ * Copyright(c) 2014 Jonathan Ong
+ * Copyright(c) 2016 Douglas Christopher Wilson
+ * MIT Licensed
+ */
+/*!
+ * toidentifier
+ * Copyright(c) 2016 Douglas Christopher Wilson
+ * MIT Licensed
+ */

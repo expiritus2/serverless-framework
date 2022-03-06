@@ -3,7 +3,7 @@ export enum AuctionStatus {
 }
 
 export type RequestBody = {
-  title: string;
+  amount: number;
 };
 
 export interface OwnEvent {

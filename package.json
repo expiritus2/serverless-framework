@@ -11,8 +11,13 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@middy/core": "^2.5.7",
+    "@middy/http-error-handler": "^2.5.7",
+    "@middy/http-event-normalizer": "^2.5.7",
+    "@middy/http-json-body-parser": "^2.5.7",
     "@types/aws-lambda": "^8.10.92",
     "@types/aws-sdk": "^2.7.0",
+    "@types/http-errors": "^1.8.2",
     "@types/node": "^17.0.21",
     "@types/serverless": "^3.0.0",
     "@types/uuid": "^8.3.4",
@@ -20,6 +25,7 @@
     "aws-sdk": "^2.1080.0",
     "esbuild": "^0.14.23",
     "eslint": "^8.9.0",
+    "http-errors": "^2.0.0",
     "husky": ">=6",
     "json-schema-to-ts": "^1.6.5",
     "lint-staged": ">=10",

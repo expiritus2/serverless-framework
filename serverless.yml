@@ -14,10 +14,15 @@ provider:
   region: eu-west-1
   stage: ${env:ENVORONMENT, 'dev'}
   memorySize: 128
+  environment:
+    AUCTIONS_TABLE_NAME: AuctionsTable
   iamRoleStatements:
     - Effect: Allow
       Action:
         - dynamodb:PutItem
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:UpdateItem
       Resource:
         - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/AuctionsTable
 
@@ -41,6 +46,24 @@ functions:
       - http:
           method: POST
           path: /auction
+  getAuctions:
+    handler: src/functions/getAuctions/index.handler
+    events:
+      - http:
+          method: GET
+          path: /auctions
+  getAuction:
+    handler: src/functions/getAuction/index.handler
+    events:
+      - http:
+          method: GET
+          path: /auction/{id}
+  placeBid:
+    handler: src/functions/placeBid/index.handler
+    events:
+      - http:
+          method: PATCH
+          path: /auction/{id}/bid
 custom:
   bundle:
     linting: false
