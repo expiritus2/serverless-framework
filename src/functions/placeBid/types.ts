@@ -1,5 +1,6 @@
 export enum AuctionStatus {
     OPEN = 'OPEN',
+    CLOSED = 'CLOSED',
 }
 
 export type RequestBody = {

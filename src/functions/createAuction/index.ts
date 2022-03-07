@@ -5,6 +5,8 @@ import { RequestBody, AuctionStatus, OwnEvent } from './types';
 import { v4 as uuid } from 'uuid';
 import AWS from 'aws-sdk';
 import commonMiddleware from '../../libs/commonMiddleware';
+import createAuctionSchema from '../../libs/schemas/createAuctionSchema';
+import validator from '@middy/validator';
 
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
@@ -19,7 +21,7 @@ const createAuction = async (event: APIGatewayEvent & OwnEvent) => {
         title,
         status: AuctionStatus.OPEN,
         createdAt: now.toISOString(),
-        endDate: endDate.toISOString(),
+        endingAt: endDate.toISOString(),
         highestBid: {
             amount: 0,
         },
@@ -35,4 +37,4 @@ const createAuction = async (event: APIGatewayEvent & OwnEvent) => {
     return formatJSONResponse(auction, 201);
 };
 
-export const handler: Handler = commonMiddleware(createAuction);
+export const handler: Handler = commonMiddleware(createAuction).use(validator({ inputSchema: createAuctionSchema }));

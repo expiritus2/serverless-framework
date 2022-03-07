@@ -1,9 +1,10 @@
 import AWS from 'aws-sdk';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
+import { Auction } from './closeAuction';
 
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
-export const getEndedAuctions = async () => {
+export const getEndedAuctions = async (): Promise<Auction[]> => {
     const now = new Date();
 
     const params: DocumentClient.QueryInput = {
@@ -20,5 +21,5 @@ export const getEndedAuctions = async () => {
     };
 
     const result = await dynamoDB.query(params).promise();
-    return result.Items;
+    return result.Items as Auction[];
 };

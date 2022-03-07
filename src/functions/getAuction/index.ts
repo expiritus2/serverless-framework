@@ -3,10 +3,11 @@ import { APIGatewayEvent, Handler } from 'aws-lambda';
 import AWS from 'aws-sdk';
 import commonMiddleware from '../../libs/commonMiddleware';
 import createHttpError from 'http-errors';
+import { Auction } from '../../libs/closeAuction';
 
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
-export const getAuctionById = async (id: string) => {
+export const getAuctionById = async (id: string): Promise<Auction> => {
     let auction;
     try {
         const result = await dynamoDB
@@ -26,7 +27,7 @@ export const getAuctionById = async (id: string) => {
         throw new createHttpError.NotFound(`Auction with ID ${id} not found!`);
     }
 
-    return auction;
+    return auction as Auction;
 };
 
 const getAuction = async (event: APIGatewayEvent) => {
