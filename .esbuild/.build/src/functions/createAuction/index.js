@@ -1091,22 +1091,21 @@ var import_core = __toESM(require_core());
 var import_http_json_body_parser = __toESM(require_http_json_body_parser());
 var import_http_event_normalizer = __toESM(require_http_event_normalizer());
 var import_http_error_handler = __toESM(require_http_error_handler());
-var commonMiddleware_default = (handler2) => (0, import_core.default)(handler2).use([
-  (0, import_http_json_body_parser.default)(),
-  (0, import_http_event_normalizer.default)(),
-  (0, import_http_error_handler.default)()
-]);
+var commonMiddleware_default = (handler2) => (0, import_core.default)(handler2).use([(0, import_http_json_body_parser.default)(), (0, import_http_event_normalizer.default)(), (0, import_http_error_handler.default)()]);
 
 // src/functions/createAuction/index.ts
 var dynamoDB = new import_aws_sdk.default.DynamoDB.DocumentClient();
 var createAuction = async (event) => {
   const { title } = event == null ? void 0 : event.body;
   const now = new Date();
+  const endDate = new Date();
+  endDate.setHours(now.getHours() + 1);
   const auction = {
     id: v4(),
     title,
     status: "OPEN" /* OPEN */,
     createdAt: now.toISOString(),
+    endDate: endDate.toISOString(),
     highestBid: {
       amount: 0
     }

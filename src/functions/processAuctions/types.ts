@@ -1,7 +1,3 @@
-export enum AuctionStatus {
-    OPEN = 'OPEN',
-}
-
 export type RequestBody = {
     amount: number;
 };

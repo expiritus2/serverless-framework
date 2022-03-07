@@ -7,6 +7,8 @@ plugins:
   - serverless-stack-output
   - serverless-prune-plugin
   - serverless-esbuild
+  - serverless-local-schedule
+  - serverless-offline-aws-eventbridge
 
 provider:
   name: aws
@@ -23,6 +25,7 @@ provider:
         - dynamodb:Scan
         - dynamodb:GetItem
         - dynamodb:UpdateItem
+        - dynamodb:Query
       Resource:
         - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/AuctionsTable
 
@@ -36,9 +39,22 @@ resources:
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+          - AttributeName: endingAt
+            AttributeType: S
         KeySchema:
           - AttributeName: id
             KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: statusAndEndDate
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+              - AttributeName: endingAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
 functions:
   createAuction:
     handler: src/functions/createAuction/index.handler
@@ -64,6 +80,13 @@ functions:
       - http:
           method: PATCH
           path: /auction/{id}/bid
+  processAuctions:
+    handler: src/functions/processAuctions/index.handler
+    events:
+      - schedule: rate(1 minute)
+      - http:
+          method: GET
+          path: /processAuctions
 custom:
   bundle:
     linting: false

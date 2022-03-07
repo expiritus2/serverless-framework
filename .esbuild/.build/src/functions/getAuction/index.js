@@ -566,9 +566,9 @@ var require_http_error_handler = __commonJS({
   }
 });
 
-// node_modules/depd/index.js
+// node_modules/http-errors/node_modules/depd/index.js
 var require_depd = __commonJS({
-  "node_modules/depd/index.js"(exports, module2) {
+  "node_modules/http-errors/node_modules/depd/index.js"(exports, module2) {
     var relative = require("path").relative;
     module2.exports = depd;
     var basePath = process.cwd();
@@ -885,9 +885,9 @@ var require_setprototypeof = __commonJS({
   }
 });
 
-// node_modules/statuses/codes.json
+// node_modules/http-errors/node_modules/statuses/codes.json
 var require_codes2 = __commonJS({
-  "node_modules/statuses/codes.json"(exports, module2) {
+  "node_modules/http-errors/node_modules/statuses/codes.json"(exports, module2) {
     module2.exports = {
       "100": "Continue",
       "101": "Switching Protocols",
@@ -956,9 +956,9 @@ var require_codes2 = __commonJS({
   }
 });
 
-// node_modules/statuses/index.js
+// node_modules/http-errors/node_modules/statuses/index.js
 var require_statuses = __commonJS({
-  "node_modules/statuses/index.js"(exports, module2) {
+  "node_modules/http-errors/node_modules/statuses/index.js"(exports, module2) {
     "use strict";
     var codes = require_codes2();
     module2.exports = status;
@@ -1274,11 +1274,7 @@ var import_core = __toESM(require_core());
 var import_http_json_body_parser = __toESM(require_http_json_body_parser());
 var import_http_event_normalizer = __toESM(require_http_event_normalizer());
 var import_http_error_handler = __toESM(require_http_error_handler());
-var commonMiddleware_default = (handler2) => (0, import_core.default)(handler2).use([
-  (0, import_http_json_body_parser.default)(),
-  (0, import_http_event_normalizer.default)(),
-  (0, import_http_error_handler.default)()
-]);
+var commonMiddleware_default = (handler2) => (0, import_core.default)(handler2).use([(0, import_http_json_body_parser.default)(), (0, import_http_event_normalizer.default)(), (0, import_http_error_handler.default)()]);
 
 // src/functions/getAuction/index.ts
 var import_http_errors = __toESM(require_http_errors());

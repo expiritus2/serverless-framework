@@ -1,11 +1,11 @@
 export enum AuctionStatus {
-  OPEN = "OPEN",
+    OPEN = 'OPEN',
 }
 
 export type RequestBody = {
-  title: string;
+    title: string;
 };
 
 export interface OwnEvent {
-  body: RequestBody;
+    body: RequestBody;
 }
