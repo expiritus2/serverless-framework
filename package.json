@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "local": "serverless offline start --noAuth",
+    "local:auth": "serverless offline start",
     "deploy": "serverless deploy",
     "undeploy": "serverless remove",
     "build": "rimraf dist && tsc",

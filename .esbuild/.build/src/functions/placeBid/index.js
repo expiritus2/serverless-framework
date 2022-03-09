@@ -21207,10 +21207,10 @@ __export(placeBid_exports, {
 });
 
 // src/libs/api-gateway.ts
-var formatJSONResponse = (response, statusCode = 200) => {
+var formatJSONResponse = (body, statusCode = 200) => {
   return {
     statusCode,
-    body: JSON.stringify(response)
+    body: JSON.stringify(body)
   };
 };
 
